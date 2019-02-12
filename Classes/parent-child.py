@@ -52,10 +52,10 @@ jill=mom.have_child("Jill")
 jill.firstname
 jill.parent.firstname
 jill.set_name("Jillian", "Jones")
-print jill.introduce()
-print jill == mom.kids[0]
+print(jill.introduce())
+print(jill == mom.kids[0])
 jack = mom.have_child("Jack")
-print jack.introduce()
+print(jack.introduce())
 jack.parent.kids[0].parent.list_children()
 jack.siblings()
 

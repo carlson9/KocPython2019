@@ -36,6 +36,6 @@ animals = [Cat('Foo'),
 #   print animal.name + ': ' + animal.talk()
   
 # f = Fish("foo")
-# print "Hi, " + str(f)
+# print("Hi, " + str(f))
 
 
