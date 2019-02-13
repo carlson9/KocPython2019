@@ -35,7 +35,7 @@ def print_integer(integer):
 		if integer %1==0:
 			print("Congratulations! You entered an integer!")
 		else:
-			raise
+			raise Exception
 	except:
 		raise TypeError("This is not an integer!")
 	else:
@@ -73,7 +73,7 @@ class CustomException(Exception):
   def __init__(self, value):
     self.value = value
   def __str__(self):
-    return self.value
+    return str(self.value)
     
     
 def print_integer(integer):
@@ -83,7 +83,7 @@ def print_integer(integer):
 		else:
 			raise CustomException(integer%1)
 	except CustomException as e:
-		raise TypeError("Your number has a decimal: %.2f" %e.value)
+		raise TypeError("Your number has a decimal: " + str(e.value))
 	except TypeError:
 # 		pass
 		raise TypeError("Enter a number!")
