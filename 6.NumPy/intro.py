@@ -556,4 +556,99 @@ data[data['age'] < 30]['name']
 
 
 
+#TODO: Answer the following questions (solutions: https://www.machinelearningplus.com/python/101-numpy-exercises-python/ continue on the site if you finish)
+
+#Create a 3×3 numpy array of all True’s
+
+
+#Extract all odd numbers from arr
+#Input:
+
+#arr = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+#Desired output:
+
+##> array([1, 3, 5, 7, 9])
+
+
+#Replace all odd numbers in arr with -1
+
+
+#Replace all odd numbers in arr with -1 without changing arr
+
+
+#Convert a 1D array to a 2D array with 2 rows
+
+
+#Stack arrays a and b vertically
+#Input
+
+#a = np.arange(10).reshape(2,-1)
+#b = np.repeat(1, 10).reshape(2,-1)
+
+#Desired Output:
+
+#> array([[0, 1, 2, 3, 4],
+#>        [5, 6, 7, 8, 9],
+#>        [1, 1, 1, 1, 1],
+#>        [1, 1, 1, 1, 1]])
+
+
+#Stack the arrays a and b horizontally.
+
+
+#Create the following pattern without hardcoding. Use only numpy functions and the below input array a.
+#Input:
+
+#a = np.array([1,2,3])`
+
+#Desired Output:
+
+#> array([1, 1, 1, 2, 2, 2, 3, 3, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3])
+
+
+#Get the common items between a and b
+#Input:
+
+#a = np.array([1,2,3,2,3,4,3,4,5,6])
+#b = np.array([7,2,10,2,7,4,9,4,9,8])
+
+#Desired Output:
+
+#array([2, 4])
+
+
+#From array a remove all items present in array b
+#Input:
+
+#a = np.array([1,2,3,4,5])
+#b = np.array([5,6,7,8,9])
+
+#Desired Output:
+
+#array([1,2,3,4])
+
+
+#Get the positions where elements of a and b match
+#Input:
+
+#a = np.array([1,2,3,2,3,4,3,4,5,6])
+#b = np.array([7,2,10,2,7,4,9,4,9,8])
+
+#Desired Output:
+
+#> (array([1, 3, 5, 7]),)
+
+
+#Get all items between 5 and 10 from a.
+#Input:
+
+#a = np.array([2, 6, 1, 9, 10, 3, 27])
+
+#Desired Output:
+
+#(array([6, 9, 10]),)
+
+
+
 
