@@ -1,7 +1,7 @@
 import sys
 import os
 
-os.chdir('KocPython2019/csvAndScraping')
+os.chdir('KocPython2019/4.csvAndScraping')
 
 #The cleanest way to handle files (gracefully handles exceptions)
 with open('readfile.txt') as f:
