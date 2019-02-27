@@ -1,3 +1,5 @@
+#ipython --pylab
+
 import numpy as np
 np.__version__
 
@@ -328,7 +330,7 @@ print("25th percentile:", np.percentile(heights, 25))
 print("Median:", np.median(heights))
 print("75th percentile:", np.percentile(heights, 75))
 
-#ipython --pylab
+
 %matplotlib osx
 import matplotlib.pyplot as plt
 import seaborn; seaborn.set() # set plot style
