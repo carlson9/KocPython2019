@@ -556,6 +556,46 @@ data[-1]['name']
 # Get names where age is under 30
 data[data['age'] < 30]['name']
 
+# transpose
+
+a = np.array([1,2,3,4])
+a.T
+a.reshape(1,4).T
+
+M = np.array(np.arange(16)).reshape(4,4)
+M
+M.T
+
+# matrix multiplication
+
+a @ M
+M @ a
+M @ a.reshape(4,1)
+a @ M
+
+# inverse
+
+np.linalg.inv(M)
+
+np.linalg.inv(M.T @ M) #singular
+
+X = np.random.random((15, 3))
+X.T @ X
+np.linalg.inv(X.T @ X)
+
+# linear regression
+
+y = np.random.random((15,1))
+b = np.linalg.inv(X.T @ X) @ X.T @ y
+
+
+
+# empty filled with NaN
+
+p = np.empty((4,4))
+p
+p.fill(np.nan)
+p
 
 
 #TODO: Answer the following questions (solutions: https://www.machinelearningplus.com/python/101-numpy-exercises-python/ continue on the site if you finish)
