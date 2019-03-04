@@ -44,7 +44,7 @@ states = pd.DataFrame({'population': population,
 'area': area})
 states
 states.index
-states.colums
+states.columns
 
 states['area']
 
@@ -156,7 +156,7 @@ columns=['A', 'B', 'C', 'D'])
 df
 
 #indices preserved
-np.exp(ser)
+np.exp(df)
 np.sin(df * np.pi / 4)
 
 #index alignment

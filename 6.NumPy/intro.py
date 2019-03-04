@@ -445,7 +445,7 @@ rand = np.random.RandomState(42)
 x = rand.randint(100, size=10)
 print(x)
 [x[3], x[7], x[2]]
-ind = [3, 7, 4]
+ind = [3, 7, 2]
 x[ind]
 ind = np.array([[3, 7], [4, 5]])
 x[ind]
