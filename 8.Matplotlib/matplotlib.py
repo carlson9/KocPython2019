@@ -16,7 +16,7 @@ plt.show()
 #only use plt.show() once per session, typically at the end -- different syntax if using interactively (e.g., iPython)
 
 #using iPython shell
-%matplotlib
+%matplotlib qt5
 import matplotlib.pyplot as plt
 #any plt plot command will cause a figure window to window, and can be updated with further function calls
 
@@ -750,13 +750,13 @@ cmap='viridis', edgecolor='none');
 
 #geographics plotting
 #need basemap and pillow installed. if on Linux you need a hack:
-#import os
-#import conda
-#conda_file_dir = conda.__file__
-#conda_dir = conda_file_dir.split('lib')[0]
-#proj_lib = os.path.join(os.path.join(conda_dir, 'share'), 'proj')
-#os.environ["PROJ_LIB"] = proj_lib
-# 
+import os
+import conda
+conda_file_dir = conda.__file__
+conda_dir = conda_file_dir.split('lib')[0]
+proj_lib = os.path.join(os.path.join(conda_dir, 'share'), 'proj')
+os.environ["PROJ_LIB"] = proj_lib
+ 
 from mpl_toolkits.basemap import Basemap
 
 
