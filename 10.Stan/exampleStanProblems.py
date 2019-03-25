@@ -866,7 +866,7 @@ contextual_pred_fit.plot('y_stl');
 #TODO: Generalize the logit model to take K predictors. Include age, educate, and income as predictors.
 
 
-#TODO: Make an indicator for the observation being of white race. Allow the slopes of the logit to vary by race. Place priors on the mean and standard deviation of the random slopes.
+#TODO: Make an indicator for the observation being of white race. Allow the intercepts of the logit to vary by race. Place priors on the mean and standard deviation of the random intercepts.
 
 
 #TODO: Allow the economic slopes and intercept to vary by race
