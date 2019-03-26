@@ -993,7 +993,7 @@ model {
 """
 logitFit2 = pystan.stan(model_code=turnout_model_gen, data=turnout_data,                                         iter=1000, chains=2)
 
-#TODO: Make an indicator for the observation being of white race. Allow the slopes of the logit to vary by race. Place priors on the mean and standard deviation of the random slopes.
+#TODO: Make an indicator for the observation being of white race. Allow the intercepts of the logit to vary by race. Place priors on the mean and standard deviation of the random intercepts.
 
 race = (data.race == 'white').astype(int)
 
