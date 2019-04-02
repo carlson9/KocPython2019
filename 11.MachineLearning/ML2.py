@@ -267,5 +267,357 @@ ax[1, 0].set_ylabel('150-dim\nreconstruction');
 #it does not perform so well when there are nonlinear relationships within the data
 
 #manifold learning
+#imagine a piece of paper. Rotating, reorienting, or stretching the piece of paper in three-dimensional space doesn't change the flat geometry of the paper: such operations are akin to linear embeddings. If you bend, curl, or crumple the paper, it is still a two-dimensional manifold, but the embedding into the three-dimensional space is no longer linear. Manifold learning algorithms would seek to learn about the fundamental two-dimensional nature of the paper, even as it is contorted to fill the three-dimensional space.
+
+#a function for creating data in the shape of hello
+def make_hello(N=1000, rseed=42):
+    # Make a plot with "HELLO" text; save as PNG
+    fig, ax = plt.subplots(figsize=(4, 1))
+    fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+    ax.axis('off')
+    ax.text(0.5, 0.4, 'HELLO', va='center', ha='center', weight='bold', size=85)
+    fig.savefig('hello.png')
+    plt.close(fig)
+    # Open this PNG and draw random points from it
+    from matplotlib.image import imread
+    data = imread('hello.png')[::-1, :, 0].T
+    rng = np.random.RandomState(rseed)
+    X = rng.rand(4 * N, 2)
+    i, j = (X * data.shape).astype(int).T
+    mask = (data[i, j] < 1)
+    X = X[mask]
+    X[:, 0] *= (data.shape[0] / data.shape[1])
+    X = X[:N]
+    return X[np.argsort(X[:, 0])]
+
+#visualize
+X = make_hello(1000)
+colorize = dict(c=X[:, 0], cmap=plt.cm.get_cmap('rainbow', 5))
+plt.scatter(X[:, 0], X[:, 1], **colorize)
+plt.axis('equal');
+
+#if we use a rotation matrix to rotate the data, the x and y values change, but the data is still fundamentally the same
+def rotate(X, angle):
+    theta = np.deg2rad(angle)
+    R = [[np.cos(theta), np.sin(theta)], [-np.sin(theta), np.cos(theta)]]
+    return np.dot(X, R)
+    
+X2 = rotate(X, 20) + 5
+plt.scatter(X2[:, 0], X2[:, 1], **colorize)
+plt.axis('equal');
+#x and y values are not necessarily fundamental to the relationships in the data - what is fundamental is the distance between the points
+
+from sklearn.metrics import pairwise_distances
+D = pairwise_distances(X)
+D.shape
+
+#visualize
+plt.imshow(D, zorder=2, cmap='Blues', interpolation='nearest')
+plt.colorbar();
+
+#distance matrix for rotated and translated data
+D2 = pairwise_distances(X2)
+np.allclose(D, D2)
+#This distance matrix gives us a representation of our data that is invariant to rotations and translations
+
+#transform back into x and y coordinates not always intuitive - using only distance matrix...
+from sklearn.manifold import MDS
+model = MDS(n_components=2, dissimilarity='precomputed', random_state=1)
+out = model.fit_transform(D)
+plt.scatter(out[:, 0], out[:, 1], **colorize)
+plt.axis('equal');
+
+#The usefulness of this becomes more apparent when we consider the fact that distance matrices can be computed from data in any dimension
+def random_projection(X, dimension=3, rseed=42):
+    assert dimension >= X.shape[1]
+    rng = np.random.RandomState(rseed)
+    C = rng.randn(dimension, dimension)
+    e, V = np.linalg.eigh(np.dot(C, C.T))
+    return np.dot(X, V[:X.shape[1]])
+
+X3 = random_projection(X, 3)
+X3.shape
+
+#visualize
+from mpl_toolkits import mplot3d
+ax = plt.axes(projection='3d')
+ax.scatter3D(X3[:, 0], X3[:, 1], X3[:, 2], **colorize)
+ax.view_init(azim=70, elev=50)
+
+#We can now ask the MDS (multi-dimensional scaling) estimator to input this three-dimensional data, compute the distance matrix, and then determine the optimal two-dimensional embedding for this distance matrix. The result recovers a representation of the original data
+model = MDS(n_components=2, random_state=1)
+out3 = model.fit_transform(X3)
+plt.scatter(out3[:, 0], out3[:, 1], **colorize)
+plt.axis('equal');
+
+#manifold learning seeks low-dimensional representation that preserves certain relationships - MDS quantity preserved is distance between points
+#MDS fails when embeddings are nonlinear
+#Consider the following embedding, which takes the input and contorts it into an S shape in three dimensions:
+def make_hello_s_curve(X):
+    t = (X[:, 0] - 2) * 0.75 * np.pi
+    x = np.sin(t)
+    y = X[:, 1]
+    z = np.sign(t) * (np.cos(t) - 1)
+    return np.vstack((x, y, z)).T
+
+XS = make_hello_s_curve(X)
+
+#visualize much more complicated embedding
+from mpl_toolkits import mplot3d
+ax = plt.axes(projection='3d')
+ax.scatter3D(XS[:, 0], XS[:, 1], XS[:, 2], **colorize);
+
+#MDS fails - throws out original y axis
+model = MDS(n_components=2, random_state=2)
+outS = model.fit_transform(XS)
+plt.scatter(outS[:, 0], outS[:, 1], **colorize)
+plt.axis('equal');
+
+#Nonlinear Manifolds: Locally Linear Embedding (LLE)
+#modify the algorithm such that it only preserves distances between nearby points - closer to what we want
+
+from sklearn.manifold import LocallyLinearEmbedding
+model = LocallyLinearEmbedding(n_neighbors=100, n_components=2, method='modified', eigen_solver='dense')
+out = model.fit_transform(XS)
+
+fig, ax = plt.subplots()
+ax.scatter(out[:, 0], out[:, 1], **colorize)
+ax.set_ylim(0.15, -0.15);
+
+#in practice manifold learning techniques tend to be finicky enough that they are rarely used for anything more than simple qualitative visualization of high-dimensional data - PCA tends to be better
+# In manifold learning, there is no good framework for handling missing data. In contrast, there are straightforward iterative approaches for missing data in PCA.
+# In manifold learning, the presence of noise in the data can short-circuit the manifold and drastically change the embedding. In contrast, PCA naturally filters noise from the most important components.
+# The manifold embedding result is generally highly dependent on the number of neighbors chosen, and there is generally no solid quantitative way to choose an optimal number of neighbors. In contrast, PCA does not involve such a choice.
+# In manifold learning, the globally optimal number of output dimensions is difficult to determine. In contrast, PCA lets you find the output dimension based on the explained variance.
+# In manifold learning, the meaning of the embedded dimensions is not always clear. In PCA, the principal components have a very clear meaning.
+# In manifold learning the computational expense of manifold methods scales as O[N 2 ] or O[N 3 ]. For PCA, there exist randomized approaches that are generally much faster (though see the megaman package for some more scalable implementations of manifold learning).
+
+#however, can preserve nonlinear relationships
+#explore manifold only after PCA
+#For high-dimensional data from real-world sources, LLE often produces poor results, and isometric mapping (Isomap) seems to generally lead to more meaningful embeddings. This is implemented in sklearn.manifold.Isomap
+
+#Isomap on faces
+from sklearn.datasets import fetch_lfw_people
+faces = fetch_lfw_people(min_faces_per_person=30)
+faces.data.shape
+#We have 2,370 images, each with 2,914 pixels. In other words, the images can be thought of as data points in a 2,914-dimensional space
+
+#We saw that for this data, nearly 100 components are required to preserve 90% of the variance. This tells us that the data is intrinsically very high dimensional - it can't be described linearly with just a few components.
+
+#Isomap embedding (slower)
+from sklearn.manifold import Isomap
+model = Isomap(n_components=2)
+proj = model.fit_transform(faces.data)
+proj.shape
+#2-D projection of all input images
+
+#output thumbnails at location of projections
+from matplotlib import offsetbox
+
+def plot_components(data, model, images=None, ax=None, thumb_frac=0.05, cmap='gray'):
+    ax = ax or plt.gca()
+    proj = model.fit_transform(data)
+    ax.plot(proj[:, 0], proj[:, 1], '.k')
+
+    if images is not None:
+        min_dist_2 = (thumb_frac * max(proj.max(0) - proj.min(0))) ** 2
+        shown_images = np.array([2 * proj.max(0)])
+        for i in range(data.shape[0]):
+            dist = np.sum((proj[i] - shown_images) ** 2, 1)
+            if np.min(dist) < min_dist_2:
+            # don't show points that are too close
+                continue
+            shown_images = np.vstack([shown_images, proj[i]])
+            imagebox = offsetbox.AnnotationBbox(offsetbox.OffsetImage(images[i], cmap=cmap), proj[i])
+            ax.add_artist(imagebox)
+
+fig, ax = plt.subplots(figsize=(10, 10))
+plot_components(faces.data, model=Isomap(n_components=2), images=faces.images[:, ::2, ::2])
+
+#mostly useful for getting an understanding of the data and intuition as to how to move forward in building our pipeline
+
+
+#k-means clustering
+#unsupervised; clustering instead of dimensionality reduction
+#The k-means algorithm searches for a predetermined number of clusters within an unlabeled multidimensional dataset. It accomplishes this using a simple conception of what the optimal clustering looks like:
+# The “cluster center” is the arithmetic mean of all the points belonging to the cluster.
+# Each point is closer to its own cluster center than to other cluster centers.
+
+#generate data and visalize (withot any labels)
+from sklearn.datasets.samples_generator import make_blobs
+X, y_true = make_blobs(n_samples=300, centers=4, cluster_std=0.60, random_state=0)
+plt.scatter(X[:, 0], X[:, 1], s=50);
+
+#automatically determine clusters
+from sklearn.cluster import KMeans
+kmeans = KMeans(n_clusters=4)
+kmeans.fit(X)
+y_kmeans = kmeans.predict(X)
+
+#visualize
+plt.scatter(X[:, 0], X[:, 1], c=y_kmeans, s=50, cmap='viridis')
+centers = kmeans.cluster_centers_
+plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5);
+
+#an exhaustive search would be very, very costly. Fortunately for us, such an exhaustive search is not necessary; instead, the typical approach to k-means involves an intuitive iterative approach known as expectation-maximization
+
+#algorithm
+#1. Guess some cluster centers
+#2. Repeat until converged
+#   a. E-Step: assign points to the nearest cluster center
+#   b. M-Step: set the cluster centers to the mean
+
+#under typical circumstances, each repetition of the E-step and M-step will always result in a better estimate of the cluster characteristics.
+
+#very basic implementation
+from sklearn.metrics import pairwise_distances_argmin
+def find_clusters(X, n_clusters, rseed=2):
+    # 1. Randomly choose clusters
+    rng = np.random.RandomState(rseed)
+    i = rng.permutation(X.shape[0])[:n_clusters]
+    centers = X[i]
+
+    while True:
+        # 2a. Assign labels based on closest center
+        labels = pairwise_distances_argmin(X, centers)
+        # 2b. Find new centers from means of points
+        new_centers = np.array([X[labels == i].mean(0) for i in range(n_clusters)])
+        # 2c. Check for convergence
+        if np.all(centers == new_centers):
+            break
+        centers = new_centers
+    return centers, labels
+
+centers, labels = find_clusters(X, 4)
+plt.scatter(X[:, 0], X[:, 1], c=labels, s=50, cmap='viridis');
+
+#most implementations will do more under the hood
+
+#no assurance that will lead to global best solution
+centers, labels = find_clusters(X, 4, rseed=0)
+plt.scatter(X[:, 0], X[:, 1], c=labels, s=50, cmap='viridis');
+
+#number of clusters must be determined beforehand
+labels = KMeans(6, random_state=0).fit_predict(X)
+plt.scatter(X[:, 0], X[:, 1], c=labels, s=50, cmap='viridis');
+
+#k-means is limited to linear cluster boundaries. The fundamental model assumptions of k-means (points will be closer to their own cluster center than to others) means that the algorithm will often be ineffective if the clusters have complicated geometries.
+from sklearn.datasets import make_moons
+X, y = make_moons(200, noise=.05, random_state=0)
+labels = KMeans(2, random_state=0).fit_predict(X)
+plt.scatter(X[:, 0], X[:, 1], c=labels, s=50, cmap='viridis');
+
+#kernalized k-means - higher dimensional representation of the data before k-means algorithm
+from sklearn.cluster import SpectralClustering
+model = SpectralClustering(n_clusters=2, affinity='nearest_neighbors', assign_labels='kmeans')
+labels = model.fit_predict(X)
+plt.scatter(X[:, 0], X[:, 1], c=labels, s=50, cmap='viridis');
+
+#k-means on digits with no a priori knowledge of lables
+from sklearn.datasets import load_digits
+digits = load_digits()
+digits.data.shape
+
+kmeans = KMeans(n_clusters=10, random_state=0)
+clusters = kmeans.fit_predict(digits.data)
+kmeans.cluster_centers_.shape
+
+#result is 10 clusters in 64 dimensions
+#typical digit:
+fig, ax = plt.subplots(2, 5, figsize=(8, 3))
+centers = kmeans.cluster_centers_.reshape(10, 8, 8)
+for axi, center in zip(ax.flat, centers):
+    axi.set(xticks=[], yticks=[])
+    axi.imshow(center, interpolation='nearest', cmap=plt.cm.binary)
+    
+#match each cluster to true label for accuracy assessment
+from scipy.stats import mode
+labels = np.zeros_like(clusters)
+for i in range(10):
+    mask = (clusters == i)
+    labels[mask] = mode(digits.target[mask])[0]
+
+#accuracy score
+from sklearn.metrics import accuracy_score
+accuracy_score(digits.target, labels)
+
+#confusion matrix
+from sklearn.metrics import confusion_matrix
+mat = confusion_matrix(digits.target, labels)
+sns.heatmap(mat.T, square=True, annot=True, fmt='d', cbar=False, xticklabels=digits.target_names, yticklabels=digits.target_names)
+plt.xlabel('true label')
+plt.ylabel('predicted label');
+
+#t-distributed stochastic neighbor embedding (t-SNE) algorithm to preprocess the data before performing k-means. t-SNE is a non‐linear embedding algorithm that is particularly adept at preserving points within clusters
+
+from sklearn.manifold import TSNE
+# Project the data: this step will take several seconds
+tsne = TSNE(n_components=2, init='pca', random_state=0)
+digits_proj = tsne.fit_transform(digits.data)
+
+# Compute the clusters
+kmeans = KMeans(n_clusters=10, random_state=0)
+clusters = kmeans.fit_predict(digits_proj)
+
+# Permute the labels
+labels = np.zeros_like(clusters)
+for i in range(10):
+    mask = (clusters == i)
+    labels[mask] = mode(digits.target[mask])[0]
+
+# Compute the accuracy
+accuracy_score(digits.target, labels)
+#no labels, almost 94% accuracy
+
+#k-means for color compression
+# Note: this requires the pillow package to be installed
+from sklearn.datasets import load_sample_image
+china = load_sample_image("china.jpg")
+ax = plt.axes(xticks=[], yticks=[])
+ax.imshow(china);
+
+china.shape
+
+#cloud of points in 3D color space
+data = china / 255.0 # use 0...1 scale
+data = data.reshape(427 * 640, 3)
+data.shape
+
+#visualize using a subset of 10,000 pixels
+def plot_pixels(data, title, colors=None, N=10000):
+    if colors is None:
+        colors = data
+
+    # choose a random subset
+    rng = np.random.RandomState(0)
+    i = rng.permutation(data.shape[0])[:N]
+    colors = colors[i]
+    R, G, B = data[i].T
+
+    fig, ax = plt.subplots(1, 2, figsize=(16, 6))
+    ax[0].scatter(R, G, color=colors, marker='.')
+    ax[0].set(xlabel='Red', ylabel='Green', xlim=(0, 1), ylim=(0, 1))
+
+    ax[1].scatter(R, B, color=colors, marker='.')
+    ax[1].set(xlabel='Red', ylabel='Blue', xlim=(0, 1), ylim=(0, 1))
+    fig.suptitle(title, size=20);
+
+plot_pixels(data, title='Input color space: 16 million possible colors')
+
+#Now let’s reduce these 16 million colors to just 16 colors, using a k-means clustering across the pixel space. Because we are dealing with a very large dataset, we will use the mini batch k-means, which operates on subsets of the data to compute the result much more quickly than the standard k-means algorithm
+from sklearn.cluster import MiniBatchKMeans
+kmeans = MiniBatchKMeans(16)
+kmeans.fit(data)
+new_colors = kmeans.cluster_centers_[kmeans.predict(data)]
+plot_pixels(data, colors=new_colors, title="Reduced color space: 16 colors")
+
+#The result is a recoloring of the original pixels, where each pixel is assigned the color of its closest cluster center. Plotting these new colors in the image space rather than the pixel space shows us the effect of this
+china_recolored = new_colors.reshape(china.shape)
+fig, ax = plt.subplots(1, 2, figsize=(16, 6), subplot_kw=dict(xticks=[], yticks=[]))
+fig.subplots_adjust(wspace=0.05)
+ax[0].imshow(china)
+ax[0].set_title('Original Image', size=16)
+ax[1].imshow(china_recolored)
+ax[1].set_title('16-color Image', size=16);
 
 
