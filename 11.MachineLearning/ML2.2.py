@@ -1,7 +1,7 @@
 #Gaussian Mixture Models
 #the nonprobabilistic nature of k-means and its use of simple distance-from-cluster-center to assign cluster membership leads to poor performance for many real-world situations
 #extension of k-means
-#can be used for estimation beyond dimple clustering
+#can be used for estimation beyond simple clustering
 import matplotlib.pyplot as plt
 import seaborn as sns; sns.set()
 import numpy as np
