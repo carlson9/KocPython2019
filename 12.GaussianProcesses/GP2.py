@@ -328,7 +328,7 @@ Xtrain, Xtest, ytrain, ytest = train_test_split(X, alphas,
 random_state=1)
 
 rbf = ConstantKernel(1.0) * RBF(length_scale=1.0)
-gpr = GaussianProcessRegressor(kernel=rbf, alpha=1e-3)
+gpr = GaussianProcessRegressor(kernel=rbf, alpha=1e-8)
 
 gpr.fit(Xtrain.toarray(), ytrain)
 
